@@ -4,7 +4,6 @@ description: "Implement tasks as a team with a leader, implementer(s), and multi
 maxTurns: 100
 license: MIT
 metadata:
-  author: vibe
   version: "2.0"
 ---
 
