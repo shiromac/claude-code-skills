@@ -48,7 +48,7 @@ curl -fsSL https://raw.githubusercontent.com/youfo/claude-code-skills/main/insta
 ### 手動インストール
 
 ```bash
-git clone --depth 1 https://github.com/youfo/claude-code-skills.git /tmp/claude-code-skills
+git clone --depth 1 https://github.com/shiromac/claude-code-skills.git /tmp/claude-code-skills
 mkdir -p .claude/skills .claude/commands
 cp -r /tmp/claude-code-skills/.claude/skills/* .claude/skills/
 cp -r /tmp/claude-code-skills/.claude/commands/* .claude/commands/
