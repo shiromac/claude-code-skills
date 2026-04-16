@@ -126,45 +126,38 @@ ADDITIONAL FOCUS: $ARGUMENTS
 
 Step 4 の結果、**対処すべき指摘(✅ 妥当 または ⚠️ 部分的に妥当)が 0 件**の場合のみ、以下の手順でマーカーを書き込む。1 件でも残っていれば書き込まない。
 
-1. 現在の tree hash を取得する:
+### 書き込み先の判定
+
+レビュー対象に応じて書き込み先を決定する:
+
+- **OpenSpec ドキュメントのレビュー**: 対象ドキュメント自体のフロントマターに書き込む
+- **OpenSpec タスク実装のコードレビュー**: `openspec/changes/<change_name>/tasks.md` のフロントマターに書き込む
+- **上記以外（ad-hoc コードレビュー）**: マーカー書き込みをスキップする
+
+### OpenSpec ドキュメントのレビューの場合
+
+1. マーカーフィールドを除去した内容でハッシュを計算する:
+   ```bash
+   sed '/^reviewed_at:/d; /^reviewed_hash:/d' <document_path> | git hash-object --stdin
+   ```
+
+2. Edit tool でフロントマターに `reviewed_at` と `reviewed_hash` を追加（既存なら上書き）:
+   ```yaml
+   reviewed_at: "<ISO 8601 タイムスタンプ>"
+   reviewed_hash: "<上で計算したハッシュ>"
+   ```
+
+### OpenSpec タスク実装のコードレビューの場合
+
+1. tree hash を取得する:
    ```bash
    git add -A && git write-tree
    ```
 
-2. マーカーファイルを `.claude/state/` に書き込む。ファイル名は `review-<task_id>.json`。
-   - `task_id` は現在の task の ID。task がない場合は `"default"` を使う。
-   - `task_subject` は task の subject。task がない場合は `$ARGUMENTS` または `"manual review"` を使う。
-
-   マーカー JSON の形式:
-   ```json
-   {
-     "task_id": "<task_id>",
-     "task_subject": "<task_subject>",
-     "tree_hash": "<git write-tree の出力>",
-     "reviewed_at": "<ISO 8601 タイムスタンプ>",
-     "ok": true
-   }
+2. Edit tool で `tasks.md` のフロントマターに `reviewed_tasks` エントリを追加:
+   ```yaml
+   reviewed_tasks:
+     "<task_id>": { hash: "<tree_hash>", at: "<ISO 8601>" }
    ```
 
-3. Bash tool で書き込む:
-   ```bash
-   python -c "
-   import json, datetime
-   marker = {
-       'task_id': '<task_id>',
-       'task_subject': '<task_subject>',
-       'tree_hash': '<tree_hash>',
-       'reviewed_at': datetime.datetime.now().isoformat(),
-       'ok': True
-   }
-   with open('.claude/state/review-<task_id>.json', 'w') as f:
-       json.dump(marker, f, indent=2)
-   print('Review marker written: .claude/state/review-<task_id>.json')
-   "
-   ```
-
-4. ユーザーに「レビュー合格マーカーを保存しました」と報告する。
-
-**重要**: マーカー書き込み前に `git add -A` を実行すること。これにより `git write-tree` が現在の全変更を含む tree hash を返す。TaskCompleted hook は同じ方法で tree hash を比較するため、一致が保証される。
-
-**注意**: `git add -A` は全ファイル（untracked 含む）をステージングする。意図的にステージング外にしているファイルがある場合、tree hash に含まれる点に留意すること。`.gitignore` に記載されたファイルは影響しない。
+3. ユーザーに「レビュー合格マーカーを保存しました」と報告する。
