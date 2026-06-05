@@ -46,6 +46,7 @@ context: fork
 | 名前 | 専門領域 |
 |------|---------|
 | **architect** | 責務分離、依存方向、レイヤー境界、SOLID原則、クラス/モジュール設計 |
+| **naming** | 名前からの機能連想性、誤解の余地の排除、曖昧・意味希薄な命名の検出、一貫性 |
 | **security** | injection (SQL, command, XSS)、secrets管理、認証/認可、unsafe deserialization、path traversal |
 | **spec-conformance** | ユースケースとの乖離、要件カバレッジ、仕様で定義された振る舞いとの不整合 |
 | **doc-consistency** | 既存ドキュメント(設計書、仕様書、README)との矛盾、用語の不統一、ドキュメント間の整合性 |
@@ -58,12 +59,12 @@ context: fork
 | **performance** | 計算量、アロケーション、ホットパス、キャッシュ、LINQ の過剰使用 | ループ処理、大量データ操作、頻繁に呼ばれるパスが含まれる |
 | **test-quality** | テストカバレッジ、アサーション妥当性、エッジケース、テストの脆さ | テストコードが対象に含まれる、または対象コードのテストが存在する |
 | **error-handling** | 境界値、例外伝播、リカバリ、障害モード、エラーメッセージの品質 | try/catch、Result型、エラー境界が含まれる |
-| **readability** | 命名、複雑度(認知的/循環的)、パターン一貫性、コードの意図の明確さ | 大規模な変更、新規ファイル追加、リファクタリング |
+| **readability** | 複雑度(認知的/循環的)、パターン一貫性、コードの意図の明確さ、フォーマット | 大規模な変更、新規ファイル追加、リファクタリング |
 | **ux** | ユーザー体験、エラーメッセージ、操作フロー、フィードバックの適切さ | UI コード、ユーザー向けメッセージ、UX関連仕様 |
 
 ### 選出ルール
 
-1. **コア4人は常に参加**する
+1. **コア5人は常に参加**する
 2. 対象のコードやドキュメントを読み、選出基準に該当する追加メンバーを選ぶ
 3. 迷ったら**入れる**（網羅性が重要）
 4. 全員入れても構わない（最大10人）
@@ -91,6 +92,7 @@ description: "Team review for: {対象の簡潔な説明}"
 | ロール | モデル | 理由 |
 |--------|--------|------|
 | architect | opus | システム全体を俯瞰するメタ的推論が必要。トレードオフ評価に高い推論力が不可欠 |
+| naming | sonnet | 詳細なガイドライン付きで判断基準が明確。sonnet で十分 |
 | security | sonnet | チェックリストベースの分析。sonnet で十分 |
 | spec-conformance | sonnet | 仕様との照合作業。sonnet で十分 |
 | doc-consistency | sonnet | ドキュメント間の比較。sonnet で十分 |
@@ -106,6 +108,40 @@ description: "Team review for: {対象の簡潔な説明}"
 各メンバーに以下のプロンプトを渡す。`{role_name}`, `{expertise}`, `{review_description}`, `{target_info}`, `{teammate_names}` を埋め込む。
 
 **spawn 時のモデル指定**: Agent の `model` パラメータに上記テーブルのモデルを指定する。例: architect は `model: "opus"`、それ以外は `model: "sonnet"`。
+
+**naming レビュアーへの追加指針**: naming レビュアーの spawn 時は、共通プロンプトの `{expertise}` 直後に以下のブロックを挿入する:
+
+```
+## Naming review guidelines
+
+You judge names by ONE criterion: **can a developer who has never seen this code correctly predict the behavior from the name alone?**
+
+Treat inappropriate naming as a design defect. Names are the design-level API that communicates responsibility, usage contracts, state transitions, and trust boundaries. A bad name can cause wrong implementation, wrong call-site usage, or wrong review decisions.
+
+**CRITICAL: Always evaluate names in context, not in isolation.** A name is never used alone — it appears as part of a qualified path: `Namespace.Class.Method`, `object.Property`, `variable.Field`. The full chain from namespace down to member forms a "sentence" that must read correctly as a whole.
+
+- A short name like `Scale` may be perfectly clear inside `Settings.Font.Scale`
+- But `FontScaleSettings.FontScale` is redundant — the parent already provides context
+- Conversely, `Config.Value` is too vague even though `Value` seems simple — the chain tells the reader nothing
+
+When reviewing, always check: **does the qualified path (namespace → class → member) read as a coherent, non-redundant description?** Flag both missing context (name only makes sense if you already know the implementation) and redundant context (name repeats what the parent already says).
+
+Check every public type, method, property, parameter, and variable introduced or modified in this change. For each name, ask:
+
+1. **Associability** — Does the full qualified name make the reader picture the right behavior? If the reader would guess wrong, it is a bad name regardless of brevity.
+2. **Ambiguity** — Could this name, in its usage context, be reasonably interpreted as doing something else? If yes, it needs to be more specific.
+3. **Semantic density** — Is every word in the name carrying meaning that isn't already provided by its parent scope? Flag both filler words (Manager, Helper, Data, Info, Item, Process, Handle) and redundant repetition of parent context. Conversely, if a longer name removes ambiguity, prefer it.
+4. **Distinguishability** — Are sibling names (types in the same namespace, methods in the same class, parameters in the same method) clearly distinguishable from each other? Even if each name is individually descriptive, a set of similar-looking names like `ApplySettings` / `ApplyConfig` / `ApplyOptions` forces the reader to dig into implementations to tell them apart. Each name in a group must highlight **what makes it different** from its neighbors.
+5. **Connotation safety** — A name doesn't just describe what something *is* — it creates an **implicit contract** in the reader's mind about how it should be used. If that implicit contract doesn't hold in all actual usage contexts, the name is a bug waiting to happen. Ask: "what assumptions will a caller make based on this name, and are those assumptions safe everywhere this name appears?" For example: lifecycle words (`Completed`, `Disposed`) imply cleanup is safe; scope words (`Global`, `Shared`) imply thread-safe access; trust words (`Trusted`, `Verified`) imply validation can be skipped; frequency words (`Once`, `Always`) imply invocation guarantees; freshness words (`Cached`, `Current`) imply staleness tolerance. If the implied contract is violated in any execution context, the name must either be narrowed to the context where the contract holds (e.g., `ScenePrefetchReady` instead of `SceneCompleted`) or the connotation-carrying word must be replaced with a neutral alternative.
+6. **Consistency** — Does this name follow the patterns already established in the codebase for similar concepts? Check neighboring files for prior art.
+
+Severity guide:
+- **critical**: The inappropriate name can mislead design understanding or usage contracts. This includes names that can cause wrong implementation, wrong call-site usage, skipped validation, unsafe lifecycle/scope/thread-safety assumptions, stale/freshness confusion, persistence confusion, reality/prediction layer confusion, or false spec-conformance/review judgments.
+- **warning**: The name is vague, low-density, inconsistent, or hard to distinguish from siblings enough that a reader must inspect implementation to understand the design. It still must be fixed, even if immediate misuse is unlikely.
+- **nit**: Minor improvement possible, but current name is not misleading.
+
+When suggesting a rename, always provide a concrete alternative name — do not just say "rename this."
+```
 
 ```
 You are a reviewer on a team review. Your role is **{role_name}** — your expertise is {expertise}.
