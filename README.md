@@ -58,8 +58,12 @@ curl -fsSL https://raw.githubusercontent.com/shiromac/claude-code-skills/main/in
 ```bash
 git clone --depth 1 https://github.com/shiromac/claude-code-skills.git /tmp/claude-code-skills
 mkdir -p .claude/skills .claude/commands
-cp -r /tmp/claude-code-skills/.claude/skills/* .claude/skills/
-cp -r /tmp/claude-code-skills/.claude/commands/* .claude/commands/
+mkdir -p .claude/skills/openspec-review-pipeline .claude/skills/team-apply
+cp /tmp/claude-code-skills/.claude/skills/openspec-review-pipeline/SKILL.md .claude/skills/openspec-review-pipeline/SKILL.md
+cp /tmp/claude-code-skills/.claude/skills/team-apply/SKILL.md .claude/skills/team-apply/SKILL.md
+cp /tmp/claude-code-skills/.claude/commands/self-review.md .claude/commands/self-review.md
+cp /tmp/claude-code-skills/.claude/commands/team-review.md .claude/commands/team-review.md
+cp /tmp/claude-code-skills/.claude/commands/team-investigate.md .claude/commands/team-investigate.md
 rm -rf /tmp/claude-code-skills
 ```
 

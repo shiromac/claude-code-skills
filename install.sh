@@ -10,8 +10,13 @@ git clone --depth 1 --quiet "$REPO" "$TMPDIR/repo"
 
 mkdir -p .claude/skills .claude/commands
 
-cp -r "$TMPDIR/repo/.claude/skills/"* .claude/skills/
-cp -r "$TMPDIR/repo/.claude/commands/"* .claude/commands/
+mkdir -p .claude/skills/openspec-review-pipeline .claude/skills/team-apply
+
+cp "$TMPDIR/repo/.claude/skills/openspec-review-pipeline/SKILL.md" .claude/skills/openspec-review-pipeline/SKILL.md
+cp "$TMPDIR/repo/.claude/skills/team-apply/SKILL.md" .claude/skills/team-apply/SKILL.md
+cp "$TMPDIR/repo/.claude/commands/self-review.md" .claude/commands/self-review.md
+cp "$TMPDIR/repo/.claude/commands/team-review.md" .claude/commands/team-review.md
+cp "$TMPDIR/repo/.claude/commands/team-investigate.md" .claude/commands/team-investigate.md
 
 echo ""
 echo "Installed:"
