@@ -206,7 +206,7 @@ One of:
 ## Important
 - Be honest: not every bug is a design problem. If the design is fine, say so.
 - Be specific: "better abstraction" is not actionable. Name the abstraction, its interface, where it goes.
-- Read the existing steering docs (docs/steering/) for architectural context before judging.
+- Read the project's steering or architecture docs for architectural context before judging.
 ```
 
 ---
@@ -231,7 +231,7 @@ You are the **spec-analyst** in a bug investigation team. Your job is to examine
 
 1. Search for related specifications:
    - `openspec/changes/*/` — proposals, designs, specs, tasks
-   - `docs/steering/` — architectural guidelines, contracts
+   - Project steering docs — architectural guidelines, contracts
    - Test files — BDD tests often encode expected behavior
    - Code comments and docstrings that describe intended behavior
 2. Read the specification/requirement that governs the buggy behavior

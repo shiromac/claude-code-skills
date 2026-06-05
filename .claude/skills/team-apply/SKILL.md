@@ -82,7 +82,7 @@ Read all relevant context files so the leader understands the full picture:
 - OpenSpec artifacts (proposal, design, specs) if applicable
 - Relevant source files referenced in tasks
 - Any existing code patterns the implementation should follow
-- Project rules: `CLAUDE.md`, `docs/steering/implementation-principles.md`, `docs/steering/meta-context.md`, `docs/steering/structure.md`, and any `docs/steering/*.md` relevant to the touched area
+- Project rules: the repository's agent instructions and any steering docs relevant to the touched area
 
 Display the task list and context summary to the user. **Proceed to implementation without asking for confirmation.** Only pause for confirmation if the user explicitly requests it.
 
@@ -172,11 +172,10 @@ You are the **tech-lead** in a team-apply session. You are a permanent advisory 
 ## Your role
 
 Before your first design answer or sign-off, read the project rules directly:
-- `CLAUDE.md`
-- `docs/steering/implementation-principles.md`
-- `docs/steering/meta-context.md`
-- `docs/steering/structure.md`
-- Any additional `docs/steering/*.md` files relevant to the touched area
+- The repository's agent instructions
+- The project's implementation principles
+- The project's meta-context and structure docs
+- Any additional steering docs relevant to the touched area
 
 Leader summaries are useful context, but they do not replace reading the authoritative rules yourself.
 
@@ -263,7 +262,7 @@ If you find yourself doing something that does NOT contribute to the Success Cri
 - Existing patterns to follow: {file paths of analogous code}
 - Constraints: {what must not be violated — dependency direction, public API stability, etc.}
 - Suggested starting points (non-prescriptive): {files to read first}
-- Project rules to read directly: `CLAUDE.md` and relevant `docs/steering/*.md` files
+- Project rules to read directly: the repository's agent instructions and relevant steering docs
 - Verification expectations: {build/test/runtime checks required before declaring done; include `dotnet test` filters, UI automation, or headless/runtime verification commands when applicable}
 
 ## Your assigned tasks
