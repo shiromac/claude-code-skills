@@ -20,7 +20,7 @@ Leader-driven team implementation. The leader owns the full execution loop direc
 - **Verification**: `leader` reads each Codex report + `git diff` and performs direction validation directly. At every round boundary (after a batch of implementers completes and direction is validated), the leader sends the consolidated diff to the tech-lead for a **design integrity check** (single pass per round, not per implementer). Tech-lead's CONCERNS, if any, are folded into the fix queue alongside reviewer findings.
 - **Final gate**: `leader → tech-lead` requests a final design sign-off before team shutdown.
 
-**Team lifespan**: The tech-lead is the only persistent member besides the leader. Implementers are launched per round by the leader and dismissed after each completion/fix report. Reviewers are launched per batch by the leader and dismissed after their report. The team is not dissolved mid-way — the leader + tech-lead pair stays alive until ALL work is complete (BDD tests green, WPF 実機確認 passed, final report).
+**Team lifespan**: The tech-lead is the only persistent member besides the leader. Implementers are launched per round by the leader and dismissed after each completion/fix report. Reviewers are launched per batch by the leader and dismissed after their report. The team is not dissolved mid-way — the leader + tech-lead pair stays alive until ALL work is complete (BDD tests green, required runtime/UI verification passed, final report).
 
 **Input**: Whatever the user provides — an OpenSpec change name, a task list, a description of work. If ambiguous, ask.
 
@@ -69,12 +69,12 @@ done        → reviewed and approved
 
 **BDD test verification (OpenSpec change only):**
 
-BDD tests are part of the spec and are created during the specs phase (`/openspec-propose` / `/openspec-review-pipeline`). When the input is an OpenSpec change, the leader verifies BDD tests already exist before building the implementation task list:
+BDD tests are part of the spec and are created during the specs phase of the project's OpenSpec workflow. When the input is an OpenSpec change, the leader verifies BDD tests already exist before building the implementation task list:
 
-1. Confirm `test/LLMGame.Tests/Integration/<feature>/` contains BDD tests for the change's specs
+1. Confirm `test/<Project>.Tests/Integration/<feature>/` contains BDD tests for the change's specs
 2. Run `dotnet test --filter "FullyQualifiedName~<feature>"` and confirm Red (or Green for parts already implemented)
 
-If BDD tests are missing (legacy change predating the rule), the leader runs `/bdd-test` once before building the internal task list. Do **not** add a Group 0 task to tasks.md — tasks.md is for implementation tasks only.
+If BDD tests are missing (legacy change predating the rule), the leader runs the project's BDD test authoring workflow once before building the internal task list. Do **not** add a Group 0 task to tasks.md — tasks.md is for implementation tasks only.
 
 ### 1-4. Gather context
 
@@ -90,9 +90,9 @@ Display the task list and context summary to the user. **Proceed to implementati
 
 When implementing an OpenSpec change, the leader confirms BDD tests are in place before launching implementers.
 
-1. Confirm `test/LLMGame.Tests/Integration/<feature>/` contains BDD tests covering all spec scenarios
+1. Confirm `test/<Project>.Tests/Integration/<feature>/` contains BDD tests covering all spec scenarios
 2. Run `dotnet test --filter "FullyQualifiedName~<feature>"` and confirm current state (Red expected for unimplemented parts)
-3. **Fallback for legacy changes only**: if BDD tests are missing, run `/bdd-test` once to create them, then re-run the test command
+3. **Fallback for legacy changes only**: if BDD tests are missing, run the project's BDD test authoring workflow once to create them, then re-run the test command
 4. **Report the baseline** in the leader's task list summary: total BDD test count, Red/Green breakdown, and a check that no test is unexpectedly Green
 
 If not an OpenSpec change: skip this step.
@@ -264,7 +264,7 @@ If you find yourself doing something that does NOT contribute to the Success Cri
 - Constraints: {what must not be violated — dependency direction, public API stability, etc.}
 - Suggested starting points (non-prescriptive): {files to read first}
 - Project rules to read directly: `CLAUDE.md` and relevant `docs/steering/*.md` files
-- Verification expectations: {build/test/runtime checks required before declaring done; include `dotnet test` filters, `wpf-agent`, or `mcp__game__*` checks when applicable}
+- Verification expectations: {build/test/runtime checks required before declaring done; include `dotnet test` filters, UI automation, or headless/runtime verification commands when applicable}
 
 ## Your assigned tasks
 
@@ -610,20 +610,20 @@ This is the final gate before completion. Review approval does not guarantee cor
 
 If not an OpenSpec change: skip this step.
 
-### 3-8. WPF 実機確認ゲート (WPF 変更を含む場合は必須)
+### 3-8. Native UI Runtime Verification Gate (required when UI changes are included)
 
-変更対象に WPF の View/ViewModel/Control が含まれる場合、BDD テスト通過後に WPF 実機確認を行う:
+変更対象に native UI の View/ViewModel/Control が含まれる場合、BDD テスト通過後に実機確認を行う:
 
-1. **変更に WPF ファイル（`src/LLMGameApp/`）が含まれるか確認する**。含まれない場合はスキップ。
-2. **実機確認が必要な場合**: leader が `dotnet run --project src/LLMGameApp -- --replace` で起動し、`wpf-agent` で操作・読取・スクリーンショット確認を自律実行する。何を操作し、何を観測すれば 成功条件 を満たすかは leader が verification plan として事前に書き出す（必要なら tech-lead に観測項目を相談してよい）。
+1. **変更に native UI ファイル（例: `src/<DesktopApp>/`）が含まれるか確認する**。含まれない場合はスキップ。
+2. **実機確認が必要な場合**: leader がプロジェクト標準の起動コマンドでアプリを起動し、プロジェクト標準の UI 自動化または手動検証手順で操作・読取・スクリーンショット確認を自律実行する。何を操作し、何を観測すれば 成功条件 を満たすかは leader が verification plan として事前に書き出す（必要なら tech-lead に観測項目を相談してよい）。
 3. **自律確認が環境都合で不可能な場合のみ**: 完了扱いにせず `pending manual verification` として、ユーザーが確認すべき手順・期待結果・未確認リスクを明示する。
-4. **確認結果が NG の場合**: 原因調査 → 修正 → 再確認のループ。BDD テストが Green でも WPF 実機で NG なら完了としない。
+4. **確認結果が NG の場合**: 原因調査 → 修正 → 再確認のループ。BDD テストが Green でも native UI 実機で NG なら完了としない。
 
-> 教訓: BDD テストはモック経由で実行され、WPF 固有の動作（DependencyProperty バインディング順序、ObservableCollection の UI 更新タイミング、タイマー駆動のアニメーション）を再現しない。
+> 教訓: BDD テストはモック経由で実行され、native UI 固有の動作（binding resolution order、collection update timing、timer-driven animation など）を再現しない。
 
 ## Step 4: Completion
 
-When all tasks are `done` (implemented + review passed + BDD tests passed + WPF 実機確認 passed):
+When all tasks are `done` (implemented + review passed + BDD tests passed + required runtime/UI verification passed):
 
 ### 4-1. Final design sign-off from tech-lead
 
@@ -707,7 +707,7 @@ Only after 4-1 passes: send a shutdown message to **tech-lead**, then TeamDelete
 - **Persistent members (Claude Code native: opus; Codex adapter: translated by adapter)**: leader, tech-lead. These two stay from team creation to final shutdown.
 - **Per-round members (Codex-first)**: implementers. Drafted and launched by the leader per round, dismissed after their completion/fix report. Each fix round launches fresh implementers (`implementer-{round}-{N}`).
 - **Per-batch members (Codex-first)**: reviewers. Launched fresh at Step 3-4, dismissed at Step 3-5.
-- **No persistent member is dismissed early.** Even after all reviews pass, leader and tech-lead stay alive through BDD verification, WPF 実機確認, and final sign-off.
+- **No persistent member is dismissed early.** Even after all reviews pass, leader and tech-lead stay alive through BDD verification, required runtime/UI verification, and final sign-off.
 
 ### Execution rules
 

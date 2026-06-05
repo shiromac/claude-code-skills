@@ -531,13 +531,13 @@ Write the entire final report in the user's language (per **Language rule**).
 After the report, offer the user these choices **in the user's language**:
 
 1. **Apply immediate fix** — Apply the Layer 1 fix now
-2. **Plan structural fix** — Create an OpenSpec change proposal (`/openspec-propose`)
+2. **Plan structural fix** — Create an OpenSpec change proposal using the project's proposal workflow
 3. **Fix specifications** — Update related spec/design documents
 4. **Save report only** — Save the report to `.claude/debug-sessions/` and exit
 
 Example (Japanese context):
 1. **即時修正を適用** — Layer 1 の修正を今すぐ適用する
-2. **構造的修正を計画** — OpenSpec change proposal を作成する (`/openspec-propose`)
+2. **構造的修正を計画** — プロジェクト標準の proposal workflow で OpenSpec change proposal を作成する
 3. **仕様を修正** — 関連する spec/design ドキュメントを更新する
 4. **レポートのみ保存** — `.claude/debug-sessions/` に保存して終了
 
